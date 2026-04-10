@@ -7,16 +7,22 @@
 
 import SwiftUI
 import AVFAudio
+import PhotosUI
 
 struct ContentView: View {
+    
     @State private var auidoPlayer: AVAudioPlayer!
     @State private var scale = 1.0 //100% scale / og size
     @State private var isFullSize = true
+    @State private var selectedPhoto: PhotosPickerItem?
+    @State private var bipImage = Image("clown")
+    
     var body: some View {
         VStack {
             
             Spacer()
-            Image("clown")
+            
+            bipImage
                 .resizable()
                 .scaledToFit()
                 .scaleEffect(isFullSize ? 1.0 : 0.9)//scale
@@ -33,12 +39,19 @@ struct ContentView: View {
             
             Spacer()
            
-            Button {
-                //TODO: Button action here :3
-            } label: {
+            PhotosPicker(selection: $selectedPhoto, matching:.images, preferredItemEncoding: .automatic) {
                 Label("Photo Library", systemImage: "photo.fill.on.rectangle.fill")
             }
             .buttonStyle(.borderedProminent)
+            .onChange(of: selectedPhoto) {
+                Task{
+                    guard let selectedImage = try? await selectedPhoto?.loadTransferable(type: Image.self) else {
+                        print("ERROR: COULD NOT GET IMAGE FROM LOADTRANSDERRABLE")
+                        return
+                    }
+                    bipImage = selectedImage
+                }
+            }
 
 
         }
@@ -68,8 +81,9 @@ struct ContentView: View {
     ContentView()
 }
 
-struct ContentView_Previews:PreviewProvider{
+/*struct ContentView_Previews:PreviewProvider{
     static var previews: some View {
         ContentView()
     }
 }
+*/
